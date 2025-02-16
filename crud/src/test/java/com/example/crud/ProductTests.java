@@ -5,6 +5,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -50,6 +52,24 @@ public class ProductTests {
 
     }
 
+    @ParameterizedTest
+    @ValueSource(strings={"Test Product"})
+    public void givenAProductIsCreated_WhenDetailsAreChecked(String productName){
+        CreateProductRequest productRequest = new CreateProductRequest(productName);
+        URI newProductLocation = createProduct(productRequest)
+                                    .expectBody(ProductResponse.class)
+                                    .returnResult()
+                                    .getResponseHeaders()
+                                    .getLocation();
+
+        ResponseSpec response = newWebClient()
+                                    .get()
+                                        .uri(newProductLocation)
+                                    .exchange();
+        itShouldFindTheNewProduct(response);
+        itShouldConfirmTheNewProductDetails(productRequest,response);
+
+    }
     private void itShouldConfirmProductDetails(CreateProductRequest productRequest, ProductResponse newProduct) {
         assertThat(newProduct.getName()).isEqualTo(productRequest.getName());
     }
