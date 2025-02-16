@@ -89,10 +89,18 @@ public class ProductTests {
                 .exchange();
 
         itShouldFindTheNewProduct(response);
+        itShouldConfirmTheNewProductDetails(productRequest,response);
     }
 
     private void itShouldFindTheNewProduct(ResponseSpec response) {
         response.expectStatus()
             .isOk();
+    }
+
+    private void itShouldConfirmTheNewProductDetails(CreateProductRequest productRequest,ResponseSpec response){
+        response.expectBody(ProductResponse.class)
+            .value(product ->{
+                assertThat(product.getName()).isEqualTo(productRequest.getName());
+            });
     }
 }
