@@ -18,4 +18,8 @@ public class Product {
         this.id=id;
     }
 
+    public static Product create(){
+        return new Product(UUID.randomUUID());
+    }
+
 }

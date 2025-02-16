@@ -12,7 +12,8 @@ import com.example.crud.model.Product;
 public class ProductController {
     @PostMapping("/products")
     ResponseEntity<Product> createNewProduct(){
-        return ResponseEntity.created(null).body(new Product(UUID.randomUUID()));
+        Product newProduct = Product.create();
+        return ResponseEntity.created(null).body(newProduct);
     }
     
 }
