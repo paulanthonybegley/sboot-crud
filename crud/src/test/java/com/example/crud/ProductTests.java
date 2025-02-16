@@ -1,5 +1,8 @@
 package com.example.crud;
 
+import java.util.UUID;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,11 +27,22 @@ public class ProductTests {
             .exchange();
 
             itShouldCreateANewProduct(response);
+            itShouldAllocateANewId(response);
 
     }
 
     private void itShouldCreateANewProduct(ResponseSpec response){
         response.expectStatus()
             .isCreated();
+    }
+
+    private void itShouldAllocateANewId(ResponseSpec response){
+        response
+            .expectBody(ProductResponse.class)
+                .value(product -> {
+                    assertThat(product.getId()).isNotEqualTo(new UUID(0, 0));
+					assertThat(product.getId()).isNotNull();
+
+            });
     }
 }
