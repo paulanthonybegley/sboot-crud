@@ -16,18 +16,21 @@ public class ProductTests {
     @Value(value="${local.server.port}")
     private int port;
 
+    private String baseUri(){return "http://localhost:" + port;}
+
     @Test
     public void givenAProduct_WhenItIsCreated() throws Exception{
         var response = WebTestClient
             .bindToServer()
-                .baseUrl("http://localhost:" + port)
+                .baseUrl(baseUri())
                 .build()
             .post()
                 .uri("/products")
             .exchange();
 
             itShouldCreateANewProduct(response);
-            itShouldAllocateANewId(response);
+            ProductResponse newProduct = itShouldAllocateANewId(response);
+            itShouldShowWhereToLocateNewProduct(response,newProduct);
 
     }
 
@@ -36,13 +39,20 @@ public class ProductTests {
             .isCreated();
     }
 
-    private void itShouldAllocateANewId(ResponseSpec response){
-        response
+    private ProductResponse itShouldAllocateANewId(ResponseSpec response){
+        return response
             .expectBody(ProductResponse.class)
                 .value(product -> {
                     assertThat(product.getId()).isNotEqualTo(new UUID(0, 0));
 					assertThat(product.getId()).isNotNull();
 
-            });
+            })
+            .returnResult()
+            .getResponseBody();
+    }
+
+    private void itShouldShowWhereToLocateNewProduct(ResponseSpec response, ProductResponse newProduct){
+        response.expectHeader()
+                .location(baseUri()+"/products"+ "/"+ newProduct.getId());
     }
 }
