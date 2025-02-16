@@ -5,9 +5,12 @@ import java.util.UUID;
 public class Product {
 
     private UUID id;
+    private String name;
 
-    public Product(UUID id){
+    public Product(UUID id, String name){
+        super();
         setId(id);
+        setName(name);
     }
 
     public UUID getId(){
@@ -17,9 +20,16 @@ public class Product {
     public void setId(UUID id){
         this.id=id;
     }
+    public void setName(String name){
+        this.name=name;
+    }
+    public String getName()
+    {
+        return name;
+    }
 
-    public static Product create(){
-        return new Product(UUID.randomUUID());
+    public static Product create(String name){
+        return new Product(UUID.randomUUID(), name);
     }
 
 }

@@ -10,49 +10,57 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.reactive.server.WebTestClient.ResponseSpec;
 
-
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class ProductTests {
-    @Value(value="${local.server.port}")
+    @Value(value = "${local.server.port}")
     private int port;
 
-    private String baseUri(){return "http://localhost:" + port;}
+    private String baseUri() {
+        return "http://localhost:" + port;
+    }
 
     @Test
-    public void givenAProduct_WhenItIsCreated() throws Exception{
+    public void givenAProduct_WhenItIsCreated() throws Exception {
+        CreateProductRequest productRequest = new CreateProductRequest("Test Product");
         var response = WebTestClient
-            .bindToServer()
+                .bindToServer()
                 .baseUrl(baseUri())
                 .build()
-            .post()
-                .uri("/products")
-            .exchange();
+                .post()
+                    .uri("/products")
+                    .bodyValue(productRequest)
+                .exchange();
 
-            itShouldCreateANewProduct(response);
-            ProductResponse newProduct = itShouldAllocateANewId(response);
-            itShouldShowWhereToLocateNewProduct(response,newProduct);
+        itShouldCreateANewProduct(response);
+        ProductResponse newProduct = itShouldAllocateANewId(response);
+        itShouldShowWhereToLocateNewProduct(response, newProduct);
+        itShouldConfirmProductDetails(productRequest, newProduct);
 
     }
 
-    private void itShouldCreateANewProduct(ResponseSpec response){
+    private void itShouldConfirmProductDetails(CreateProductRequest productRequest, ProductResponse newProduct) {
+        assertThat(newProduct.getName()).isEqualTo(productRequest.getName());
+    }
+
+    private void itShouldCreateANewProduct(ResponseSpec response) {
         response.expectStatus()
-            .isCreated();
+                .isCreated();
     }
 
-    private ProductResponse itShouldAllocateANewId(ResponseSpec response){
+    private ProductResponse itShouldAllocateANewId(ResponseSpec response) {
         return response
-            .expectBody(ProductResponse.class)
+                .expectBody(ProductResponse.class)
                 .value(product -> {
                     assertThat(product.getId()).isNotEqualTo(new UUID(0, 0));
-					assertThat(product.getId()).isNotNull();
+                    assertThat(product.getId()).isNotNull();
 
-            })
-            .returnResult()
-            .getResponseBody();
+                })
+                .returnResult()
+                .getResponseBody();
     }
 
-    private void itShouldShowWhereToLocateNewProduct(ResponseSpec response, ProductResponse newProduct){
+    private void itShouldShowWhereToLocateNewProduct(ResponseSpec response, ProductResponse newProduct) {
         response.expectHeader()
-                .location(baseUri()+"/products"+ "/"+ newProduct.getId());
+                .location(baseUri() + "/products" + "/" + newProduct.getId());
     }
 }

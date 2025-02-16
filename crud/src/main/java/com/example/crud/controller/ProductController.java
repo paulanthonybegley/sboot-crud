@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -13,8 +14,8 @@ import com.example.crud.model.Product;
 @RestController
 public class ProductController {
     @PostMapping("/products")
-    ResponseEntity<Product> createNewProduct(){
-        Product newProduct = Product.create();
+    ResponseEntity<Product> createNewProduct(@RequestBody Product createProductRequest){
+        Product newProduct = Product.create(createProductRequest.getName());
         URI newProductLocation = ServletUriComponentsBuilder
                         .fromCurrentRequest()
                         .path("/{id}")
