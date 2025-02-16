@@ -16,21 +16,32 @@ public class ProductTests {
     @Value(value = "${local.server.port}")
     private int port;
 
+    private static final String PRODUCT_PATH = "/products";
+
     private String baseUri() {
         return "http://localhost:" + port;
+    }
+
+    private WebTestClient newWebClient(){
+        return WebTestClient
+            .bindToServer()
+            .baseUrl(baseUri())
+            .build();
+
+    }
+
+    private ResponseSpec createProduct(CreateProductRequest productRequest){
+        return newWebClient()
+            .post()
+                .uri(PRODUCT_PATH)
+                .bodyValue(productRequest)
+            .exchange();
     }
 
     @Test
     public void givenAProduct_WhenItIsCreated() throws Exception {
         CreateProductRequest productRequest = new CreateProductRequest("Test Product");
-        var response = WebTestClient
-                .bindToServer()
-                .baseUrl(baseUri())
-                .build()
-                .post()
-                .uri("/products")
-                .bodyValue(productRequest)
-                .exchange();
+        var response = createProduct(productRequest);
 
         itShouldCreateANewProduct(response);
         ProductResponse newProduct = itShouldAllocateANewId(response);
@@ -62,27 +73,18 @@ public class ProductTests {
 
     private void itShouldShowWhereToLocateNewProduct(ResponseSpec response, ProductResponse newProduct) {
         response.expectHeader()
-                .location(baseUri() + "/products" + "/" + newProduct.getId());
+                .location(baseUri() + PRODUCT_PATH + "/" + newProduct.getId());
     }
 
     @Test
     public void givenAProductIsCreated_WhenCheckingItsDetails() {
         CreateProductRequest productRequest = new CreateProductRequest("Test Product");
-        URI newProductLocation = WebTestClient
-                .bindToServer()
-                .baseUrl(baseUri())
-                .build()
-                .post()
-                .uri("/products")
-                .bodyValue(productRequest)
-                .exchange()
+        URI newProductLocation = createProduct(productRequest)
                 .expectBody(ProductResponse.class)
                 .returnResult()
                 .getResponseHeaders().getLocation();
 
-        ResponseSpec response = WebTestClient
-                .bindToServer()
-                .build()
+        ResponseSpec response = newWebClient()
                 .get().uri(newProductLocation)
                 .exchange();
 
