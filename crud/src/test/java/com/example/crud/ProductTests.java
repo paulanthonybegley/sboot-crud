@@ -1,5 +1,6 @@
 package com.example.crud;
 
+import java.net.URI;
 import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,8 +28,8 @@ public class ProductTests {
                 .baseUrl(baseUri())
                 .build()
                 .post()
-                    .uri("/products")
-                    .bodyValue(productRequest)
+                .uri("/products")
+                .bodyValue(productRequest)
                 .exchange();
 
         itShouldCreateANewProduct(response);
@@ -62,5 +63,34 @@ public class ProductTests {
     private void itShouldShowWhereToLocateNewProduct(ResponseSpec response, ProductResponse newProduct) {
         response.expectHeader()
                 .location(baseUri() + "/products" + "/" + newProduct.getId());
+    }
+
+    @Test
+    public void givenAProductIsCreated_WhenCheckingItsDetails() {
+        CreateProductRequest productRequest = new CreateProductRequest("Test Product");
+        URI newProductLocation = WebTestClient
+                .bindToServer()
+                .baseUrl(baseUri())
+                .build()
+                .post()
+                .uri("/products")
+                .bodyValue(productRequest)
+                .exchange()
+                .expectBody(ProductResponse.class)
+                .returnResult()
+                .getResponseHeaders().getLocation();
+
+        ResponseSpec response = WebTestClient
+                .bindToServer()
+                .build()
+                .get().uri(newProductLocation)
+                .exchange();
+
+        itShouldFindTheNewProduct(response);
+    }
+
+    private void itShouldFindTheNewProduct(ResponseSpec response) {
+        response.expectStatus()
+            .isOk();
     }
 }
